@@ -37,7 +37,7 @@ impl ShardedDB {
         Self { shards }
     }
     fn insert(&self, key: &str, value: &Bytes) {
-        let hash = 0;
+        let hash = 0; // TO-DO: Add proper hashing
         let shard = hash % self.shards.len();
         self.shards[shard]
             .lock()
@@ -45,7 +45,7 @@ impl ShardedDB {
             .insert(key.to_string(), value.clone());
     }
     fn get(&self, key: &str) -> Option<bytes::Bytes> {
-        let hash = 0;
+        let hash = 0; // TO-DO: Add proper hashing
         let shard = hash % self.shards.len();
         self.shards[shard].lock().unwrap().get(key).cloned()
     }
