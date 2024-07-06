@@ -1,5 +1,5 @@
 [package]
-name = "tokio-redis"
+name = "mini-redis"
 version = "0.1.0"
 edition = "2021"
 
