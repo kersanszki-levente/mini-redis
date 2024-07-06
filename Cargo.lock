@@ -301,6 +301,14 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
 name = "mini-redis"
+version = "0.1.0"
+dependencies = [
+ "mini-redis 0.4.1",
+ "tokio",
+]
+
+[[package]]
+name = "mini-redis"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "528890a6b63c88c9bda173867128abe62c0f5050dd959f067aeea09e90439f33"
@@ -696,14 +704,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.68",
-]
-
-[[package]]
-name = "tokio-redis"
-version = "0.1.0"
-dependencies = [
- "mini-redis",
- "tokio",
 ]
 
 [[package]]
