@@ -7,12 +7,10 @@ use tokio::net::{TcpListener, TcpStream};
 use mini_redis::{Connection, Frame};
 use mini_redis::Command::{self, Get, Set};
 
-type DB = Arc<Mutex<HashMap<String, Bytes>>>;
-
 #[tokio::main]
 async fn main() {
     let listener = TcpListener::bind("127.0.0.1:6379").await.unwrap();
-    let db: DB = Arc::new(Mutex::new(HashMap::new()));
+    let db = Arc::new(ShardedDB::new(12));
 
     loop {
         let (socket, _) = listener.accept().await.unwrap();
@@ -24,21 +22,47 @@ async fn main() {
     }
 }
 
-async fn process(socket: TcpStream, db: DB) {
+type Shard = Mutex<HashMap<String, Bytes>>;
+
+struct ShardedDB {
+    shards: Vec<Shard>
+}
+
+impl ShardedDB {
+    fn new(n_shards: usize) -> Self {
+        let mut shards = Vec::with_capacity(n_shards);
+        for _ in 0..n_shards {
+            shards.push(Mutex::new(HashMap::new()));
+        }
+        Self { shards }
+    }
+    fn insert(&self, key: &str, value: &Bytes) {
+        let hash = 0;
+        let shard = hash % self.shards.len();
+        self.shards[shard]
+            .lock()
+            .unwrap()
+            .insert(key.to_string(), value.clone());
+    }
+    fn get(&self, key: &str) -> Option<bytes::Bytes> {
+        let hash = 0;
+        let shard = hash % self.shards.len();
+        self.shards[shard].lock().unwrap().get(key).cloned()
+    }
+}
+
+async fn process(socket: TcpStream, db: Arc<ShardedDB>) {
 
     let mut connection = Connection::new(socket);
 
     while let Some(frame) = connection.read_frame().await.unwrap() {
         let response = match Command::from_frame(frame).unwrap() {
             Set(cmd) => {
-                db
-                    .lock()
-                    .unwrap()
-                    .insert(cmd.key().to_string(), cmd.value().clone());
+                db.insert(cmd.key(), cmd.value());
                 Frame::Simple("OK".to_string())
             }
             Get(cmd) => {
-                if let Some(value) = db.lock().unwrap().get(cmd.key()) {
+                if let Some(value) = db.get(cmd.key()) {
                     Frame::Bulk(value.clone().into())
                 } else {
                     Frame::Null
