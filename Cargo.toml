@@ -8,6 +8,9 @@ bytes = "1"
 mini-redis = "0.4.1"
 tokio = { version = "1.38.0", features = ["full"] }
 
+[lib]
+path = "src/lib.rs"
+
 [[bin]]
 name = "server"
 path = "src/bin/server.rs"
