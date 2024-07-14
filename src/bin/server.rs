@@ -4,8 +4,9 @@ use std::sync::{Arc, Mutex};
 use bytes::Bytes;
 use tokio::net::{TcpListener, TcpStream};
 
-use mini_redis::{Connection, Frame};
-use mini_redis::Command::{self, Get, Set};
+use myredis::command::Command::{self, Get, Set};
+use myredis::connection::Connection;
+use myredis::frame::Frame;
 
 #[tokio::main]
 async fn main() {
@@ -68,7 +69,7 @@ async fn process(socket: TcpStream, db: Arc<ShardedDB>) {
                     Frame::Null
                 }
             }
-            cmd => panic!("Not implemented: {cmd:?}"),
+            // cmd => panic!("Not implemented: {cmd:?}"),
         };
         connection.write_frame(&response).await.unwrap();
     }
