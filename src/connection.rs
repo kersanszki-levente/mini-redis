@@ -12,7 +12,7 @@ pub struct Connection {
 }
 
 impl Connection {
-    fn new(stream: TcpStream) -> Self {
+    pub fn new(stream: TcpStream) -> Self {
         Self {
             stream: BufWriter::new(stream),
             buffer: BytesMut::with_capacity(4096),
