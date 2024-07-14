@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
-use bytes::Bytes;
 use tokio::net::{TcpListener, TcpStream};
 
 use myredis::command::Command::{self, Get, Set};
 use myredis::connection::Connection;
+use myredis::db::ShardedDB;
 use myredis::frame::Frame;
 
 #[tokio::main]
@@ -20,35 +19,6 @@ async fn main() {
         tokio::spawn(async move {
             process(socket, db).await;
         }).await.unwrap();
-    }
-}
-
-type Shard = Mutex<HashMap<String, Bytes>>;
-
-struct ShardedDB {
-    shards: Vec<Shard>
-}
-
-impl ShardedDB {
-    fn new(n_shards: usize) -> Self {
-        let mut shards = Vec::with_capacity(n_shards);
-        for _ in 0..n_shards {
-            shards.push(Mutex::new(HashMap::new()));
-        }
-        Self { shards }
-    }
-    fn insert(&self, key: &str, value: &Bytes) {
-        let hash = 0; // TO-DO: Add proper hashing
-        let shard = hash % self.shards.len();
-        self.shards[shard]
-            .lock()
-            .unwrap()
-            .insert(key.to_string(), value.clone());
-    }
-    fn get(&self, key: &str) -> Option<bytes::Bytes> {
-        let hash = 0; // TO-DO: Add proper hashing
-        let shard = hash % self.shards.len();
-        self.shards[shard].lock().unwrap().get(key).cloned()
     }
 }
 
